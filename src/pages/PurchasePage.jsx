@@ -9,10 +9,10 @@ const PurchasePage = () => {
 
   // Load existing products
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/api/products")
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error(err));
+   axios
+     .get(`${import.meta.env.VITE_API_URL}/api/products`)
+     .then((res) => setProducts(res.data))
+     .catch((err) => console.error(err));
   }, []);
 
   // Handle change for item row
@@ -71,7 +71,7 @@ const PurchasePage = () => {
   // Save purchase
   const savePurchase = async () => {
     try {
-      await axios.post("http://localhost:5000/api/purchases", {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, {
         items,
         totalAmount,
       });

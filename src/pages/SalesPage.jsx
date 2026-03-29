@@ -17,7 +17,7 @@ const SalesPage = () => {
   // ✅ Load products on mount
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/products")
+      .get(`${import.meta.env.VITE_API_URL}/api/products`)
       .then((res) => setProducts(res.data))
       .catch((err) => console.error("Failed to load products:", err));
   }, []);
@@ -92,7 +92,7 @@ const createSale = async () => {
 
   setLoading(true);
   try {
-    const res = await axios.post("http://localhost:5000/api/sales", {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/sales`, {
       customer: customerName,
       items,
       totalAmount,
@@ -103,7 +103,7 @@ const createSale = async () => {
 
     // ✅ 🔥 RELOAD PRODUCTS (IMPORTANT)
     const updatedProducts = await axios.get(
-      "http://localhost:5000/api/products",
+      `${import.meta.env.VITE_API_URL}/api/products`,
     );
     setProducts(updatedProducts.data);
 

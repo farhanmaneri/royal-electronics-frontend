@@ -17,7 +17,7 @@ const ProductsPage = () => {
   // Load products
   const fetchProducts = () => {
     axios
-      .get("http://localhost:5000/api/products")
+      .get(`${import.meta.env.VITE_API_URL}/api/products`)
       .then((res) => {
         setProducts(res.data);
         setFilteredProducts(res.data);
@@ -51,7 +51,10 @@ const ProductsPage = () => {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5000/api/products", newProduct);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/products`,
+        newProduct,
+      );
       alert("Product added successfully ✅");
       setNewProduct({ name: "", unitType: "", price: 0, stock: 0 });
       fetchProducts();
@@ -66,7 +69,7 @@ const ProductsPage = () => {
   // Update price or stock
   const updateProduct = async (id, field, value) => {
     try {
-      await axios.put(`http://localhost:5000/api/products/${id}`, {
+      await axios.put(`${import.meta.env.VITE_API_URL}/api/products/${id}`, {
         [field]: value,
       });
       fetchProducts();
@@ -81,7 +84,7 @@ const ProductsPage = () => {
    if (!window.confirm("Are you sure you want to delete this product?")) return;
 
    try {
-     await axios.delete(`http://localhost:5000/api/products/${id}`);
+     await axios.delete(`${import.meta.env.VITE_API_URL}/api/products${id}`);
      alert("Product deleted successfully");
 
      // Remove from frontend state
