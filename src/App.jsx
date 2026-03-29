@@ -5,7 +5,7 @@ import ProductsPage from "./pages/ProductsPage";
 import LoginPage from "./pages/LoginPage";
 import Navbar from "./components/Navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
-import NotFoundPage from "./pages/NotfoundPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
