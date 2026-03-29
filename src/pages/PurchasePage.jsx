@@ -71,7 +71,7 @@ const PurchasePage = () => {
   // Save purchase
   const savePurchase = async () => {
     try {
-      await axios.post(`${import.meta.env.VITE_API_URL}/api/products`, {
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/purchase`, {
         items,
         totalAmount,
       });
