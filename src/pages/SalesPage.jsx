@@ -291,8 +291,14 @@ const SalesPage = () => {
                           <input
                             type="number"
                             value={item.price}
-                            readOnly
-                            className="w-20 px-2 py-1.5 border border-gray-200 rounded-lg bg-gray-50 text-sm text-gray-500"
+                            onChange={(e) =>
+                              handleChange(
+                                index,
+                                "price",
+                                Number(e.target.value),
+                              )
+                            }
+                            className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           />
                         </td>
                         <td className="px-4 py-3 text-gray-600">
@@ -363,8 +369,10 @@ const SalesPage = () => {
                         <input
                           type="number"
                           value={item.price}
-                          readOnly
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white text-sm text-gray-500"
+                          onChange={(e) =>
+                            handleChange(index, "price", Number(e.target.value))
+                          }
+                          className="w-20 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         />
                       </div>
                     </div>
