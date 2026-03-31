@@ -3,19 +3,23 @@ import { useNavigate } from "react-router-dom";
 
 const USERNAME = import.meta.env.VITE_APP_USERNAME;
 const PASSWORD = import.meta.env.VITE_APP_PASSWORD;
-
 const LoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  
   const handleLogin = (e) => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
+      console.log("ENV USERNAME:", import.meta.env.VITE_APP_USERNAME);
+    console.log("ENV PASSWORD:", import.meta.env.VITE_APP_PASSWORD);
+    console.log("TYPED USERNAME:", username);
+    console.log("TYPED PASSWORD:", password);
       if (username === USERNAME && password === PASSWORD) {
+       
         localStorage.setItem("isLoggedIn", "true");
         navigate("/");
       } else {

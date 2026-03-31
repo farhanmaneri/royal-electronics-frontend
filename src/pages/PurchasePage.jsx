@@ -55,26 +55,48 @@ const PurchasePage = () => {
       .catch((err) => console.error(err));
   }, []);
 
-  const fetchPurchases = async () => {
-    setHistoryLoading(true);
-    try {
-      const params = {};
-      if (supplier) params.supplier = supplier;
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+  // const fetchPurchases = async () => {
+  //   setHistoryLoading(true);
+  //   try {
+  //     const params = {};
+  //     if (supplier) params.supplier = supplier;
+  //     if (startDate) params.startDate = startDate;
+  //     if (endDate) params.endDate = endDate;
 
-      const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/purchases`,
-        { params },
-      );
-      setPurchases(res.data);
-    } catch (err) {
-      showToast("Failed to load purchase history", "error");
-    } finally {
-      setHistoryLoading(false);
+  //     const res = await axios.get(
+  //       `${import.meta.env.VITE_API_URL}/api/purchases`,
+  //       { params },
+  //     );
+  //     setPurchases(res.data);
+  //   } catch (err) {
+  //     showToast("Failed to load purchase history", "error");
+  //   } finally {
+  //     setHistoryLoading(false);
+  //   }
+  // };
+const fetchPurchases = async (retryCount = 0) => {
+  setHistoryLoading(true);
+  try {
+    const params = {};
+    if (supplier) params.supplier = supplier;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/purchases`, { params });
+    setPurchases(res.data);
+
+  } catch (err) {
+    // ✅ Auto retry up to 3 times on 500 error
+    if (err.response?.status === 500 && retryCount < 3) {
+      console.log(`Retrying... attempt ${retryCount + 1}`);
+      setTimeout(() => fetchPurchases(retryCount + 1), 1500);
+      return;
     }
-  };
-
+    showToast("Failed to load purchase history", "error");
+  } finally {
+    setHistoryLoading(false);
+  }
+};
   useEffect(() => {
     if (activeTab === "history") fetchPurchases();
   }, [activeTab]);

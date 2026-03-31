@@ -63,25 +63,48 @@ const SalesPage = () => {
       .catch((err) => console.error("Failed to load products:", err));
   }, []);
 
-  const fetchSales = async () => {
-    setHistoryLoading(true);
-    try {
-      const params = {};
-      if (invoice) params.invoice = invoice;
-      if (startDate) params.startDate = startDate;
-      if (endDate) params.endDate = endDate;
+  // const fetchSales = async () => {
+  //   setHistoryLoading(true);
+  //   try {
+  //     const params = {};
+  //     if (invoice) params.invoice = invoice;
+  //     if (startDate) params.startDate = startDate;
+  //     if (endDate) params.endDate = endDate;
 
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/sales`, {
-        params,
-      });
-      setSales(res.data);
-    } catch (err) {
-      showToast("Failed to load sales history", "error");
-    } finally {
-      setHistoryLoading(false);
+  //     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/sales`, {
+  //       params,
+  //     });
+  //     setSales(res.data);
+  //   } catch (err) {
+  //     showToast("Failed to load sales history", "error");
+  //   } finally {
+  //     setHistoryLoading(false);
+  //   }
+  // };
+
+  const fetchSales = async (retryCount = 0) => {
+  setHistoryLoading(true);
+  try {
+    const params = {};
+    if (invoice) params.invoice = invoice;
+    if (startDate) params.startDate = startDate;
+    if (endDate) params.endDate = endDate;
+
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/sales`, { params });
+    setSales(res.data);
+
+  } catch (err) {
+    // ✅ Auto retry up to 3 times on 500 error
+    if (err.response?.status === 500 && retryCount < 3) {
+      console.log(`Retrying... attempt ${retryCount + 1}`);
+      setTimeout(() => fetchSales(retryCount + 1), 1500); // wait 1.5s then retry
+      return;
     }
-  };
-
+    showToast("Failed to load sales history", "error");
+  } finally {
+    setHistoryLoading(false);
+  }
+};
   useEffect(() => {
     if (activeTab === "history") fetchSales();
   }, [activeTab]);
