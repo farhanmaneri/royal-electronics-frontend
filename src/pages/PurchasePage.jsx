@@ -536,10 +536,12 @@ const fetchPurchases = async (retryCount = 0) => {
             </div>
 
             {/* Purchase List */}
-            {historyLoading ? (
-              <div className="text-center py-10 text-gray-400">
-                Loading purchases...
-              </div>
+           // ✅ New spinner
+{historyLoading ? (
+  <div className="py-10 text-center">
+    <div className="w-10 h-10 rounded-full border-4 border-green-100 border-t-green-600 animate-spin mx-auto mb-3"></div>
+    <p className="text-gray-400 text-sm">Loading purchase history...</p>
+  </div>
             ) : purchases.length === 0 ? (
               <div className="text-center py-10 text-gray-400">
                 No purchases found
