@@ -34,6 +34,7 @@ const Toast = ({ message, type, onClose }) => {
 
 const SalesPage = () => {
   const [productsLoading, setProductsLoading] = useState(true);
+  const [productsConnected, setProductsConnected] = useState(false);
   const [products, setProducts] = useState([]);
   const [customerName, setCustomerName] = useState("Walk-in");
   const [items, setItems] = useState([
@@ -50,19 +51,37 @@ const SalesPage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [activeTab, setActiveTab] = useState("new"); // "new" or "history"
-
+const [historyConnected, setHistoryConnected] = useState(false);
   const receiptRef = useRef(null);
 
   const showToast = (message, type = "success") => {
     setToast({ message, type });
   };
 
- useEffect(() => {
-  axios
-    .get(`${import.meta.env.VITE_API_URL}/api/products`)
-    .then((res) => setProducts(res.data))
-    .catch((err) => console.error(err))
-    .finally(() => setProductsLoading(false)); // ✅ add this
+useEffect(() => {
+  const fetchProducts = async (retry = 0) => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/products`
+      );
+
+      setProducts(res.data);
+      setProductsConnected(true); // ✅ connected
+      setProductsLoading(false);
+    } catch (err) {
+      console.log("Retrying products...", retry);
+
+      if (retry < 5) {
+        setTimeout(() => fetchProducts(retry + 1), 2000);
+      } else {
+        setProductsLoading(false);
+        setProductsConnected(false);
+        showToast("Server not responding", "error");
+      }
+    }
+  };
+
+  fetchProducts();
 }, []);
 
   // const fetchSales = async () => {
@@ -84,25 +103,31 @@ const SalesPage = () => {
   //   }
   // };
 
-  const fetchSales = async (retryCount = 0) => {
+const fetchSales = async (retryCount = 0) => {
   setHistoryLoading(true);
+
   try {
     const params = {};
     if (invoice) params.invoice = invoice;
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
 
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/sales`, { params });
-    setSales(res.data);
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/sales`,
+      { params }
+    );
 
+    setSales(res.data);
+    setHistoryConnected(true); // ✅ connected
   } catch (err) {
-    // ✅ Auto retry up to 3 times on 500 error
-    if (err.response?.status === 500 && retryCount < 3) {
-      console.log(`Retrying... attempt ${retryCount + 1}`);
-      setTimeout(() => fetchSales(retryCount + 1), 1500); // wait 1.5s then retry
+    if (err.response?.status === 500 && retryCount < 5) {
+      console.log(`Retrying sales... ${retryCount + 1}`);
+      setTimeout(() => fetchSales(retryCount + 1), 1500);
       return;
     }
-    showToast("Failed to load sales history", "error");
+
+    setHistoryConnected(false);
+    showToast("Server not responding", "error");
   } finally {
     setHistoryLoading(false);
   }
@@ -294,9 +319,9 @@ const SalesPage = () => {
                             className="w-48 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                            
-  {productsLoading ? (
-    <option>Loading products...</option>
-  ) : (
+{productsLoading || !productsConnected ? (
+  <option>Connecting to server...</option>
+) : (
     <>
       <option value="">-- Select Product --</option>
       {products.map((p) => (
@@ -531,8 +556,8 @@ const SalesPage = () => {
             </div>
 
             {/* Sales List */}
-            // ✅ New spinner
-{historyLoading ? (
+            
+{historyLoading || !historyConnected ? (
   <div className="py-10 text-center">
     <div className="w-10 h-10 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin mx-auto mb-3"></div>
     <p className="text-gray-400 text-sm">Loading sales history...</p>

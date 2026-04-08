@@ -3,6 +3,7 @@ import axios from "axios";
 
 const ProductsPage = () => {
   const [pageLoading, setPageLoading] = useState(true);
+  const [connected, setConnected] = useState(false);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -16,16 +17,24 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(false);
 
 
-  const fetchProducts = async () => {
-  setPageLoading(true);
+let retryCount = 0;
+
+const fetchProducts = async () => {
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`);
     setProducts(res.data);
     setFilteredProducts(res.data);
-  } catch (err) {
-    console.error(err);
-  } finally {
+    setConnected(true);
     setPageLoading(false);
+  } catch (err) {
+    retryCount++;
+
+    if (retryCount < 5) {
+      setTimeout(fetchProducts, 2000);
+    } else {
+      setPageLoading(false);
+      alert("Server not responding ❌");
+    }
   }
 };
 

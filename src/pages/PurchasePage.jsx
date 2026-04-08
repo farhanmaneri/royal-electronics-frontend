@@ -33,6 +33,7 @@ const Toast = ({ message, type, onClose }) => {
 
 const PurchasePage = () => {
   const [productsLoading, setProductsLoading] = useState(true);
+  const [productsConnected, setProductsConnected] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([
@@ -40,6 +41,7 @@ const PurchasePage = () => {
   ]);
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState("new");
+  const [historyConnected, setHistoryConnected] = useState(false);
 
   // History states
   const [purchases, setPurchases] = useState([]);
@@ -47,15 +49,33 @@ const PurchasePage = () => {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [supplier, setSupplier] = useState("");
-
   const showToast = (message, type = "success") => setToast({ message, type });
 
- useEffect(() => {
-  axios
-    .get(`${import.meta.env.VITE_API_URL}/api/products`)
-    .then((res) => setProducts(res.data))
-    .catch((err) => console.error(err))
-    .finally(() => setProductsLoading(false)); // ✅ add this
+
+
+useEffect(() => {
+  const fetchProducts = async (retry = 0) => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/products`
+      );
+
+      setProducts(res.data);
+      setProductsConnected(true);
+      setProductsLoading(false);
+    } catch (err) {
+      console.log("Retrying products...", retry);
+
+      if (retry < 5) {
+        setTimeout(() => fetchProducts(retry + 1), 2000);
+      } else {
+        setProductsLoading(false);
+        showToast("Failed to connect to server", "error");
+      }
+    }
+  };
+
+  fetchProducts();
 }, []);
 
   // const fetchPurchases = async () => {
@@ -79,23 +99,29 @@ const PurchasePage = () => {
   // };
 const fetchPurchases = async (retryCount = 0) => {
   setHistoryLoading(true);
+
   try {
     const params = {};
     if (supplier) params.supplier = supplier;
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
 
-    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/purchases`, { params });
-    setPurchases(res.data);
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/purchases`,
+      { params }
+    );
 
+    setPurchases(res.data);
+    setHistoryConnected(true);
   } catch (err) {
-    // ✅ Auto retry up to 3 times on 500 error
-    if (err.response?.status === 500 && retryCount < 3) {
-      console.log(`Retrying... attempt ${retryCount + 1}`);
+    if (err.response?.status === 500 && retryCount < 5) {
+      console.log(`Retrying history... ${retryCount + 1}`);
       setTimeout(() => fetchPurchases(retryCount + 1), 1500);
       return;
     }
-    showToast("Failed to load purchase history", "error");
+
+    setHistoryConnected(false);
+    showToast("Server not responding", "error");
   } finally {
     setHistoryLoading(false);
   }
@@ -264,9 +290,9 @@ const fetchPurchases = async (retryCount = 0) => {
                           className="w-44 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                         >
                           
-  {productsLoading ? (
-    <option>Loading products...</option>
-  ) : (
+ {productsLoading || !productsConnected ? (
+  <option>Connecting to server...</option>
+) : (
     <>
       <option value="">-- Select Product --</option>
       {products.map((p) => (
@@ -536,9 +562,7 @@ const fetchPurchases = async (retryCount = 0) => {
             </div>
 
             {/* Purchase List */}
-           // ✅ New spinner
-{historyLoading ? (
-  <div className="py-10 text-center">
+{historyLoading || !historyConnected ? (  <div className="py-10 text-center">
     <div className="w-10 h-10 rounded-full border-4 border-green-100 border-t-green-600 animate-spin mx-auto mb-3"></div>
     <p className="text-gray-400 text-sm">Loading purchase history...</p>
   </div>
@@ -611,6 +635,6 @@ const fetchPurchases = async (retryCount = 0) => {
       </div>
     </div>
   );
-};
+}
 
 export default PurchasePage;
