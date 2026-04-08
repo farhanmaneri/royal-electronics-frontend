@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+
 // ✅ Toast Component
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -31,6 +32,7 @@ const Toast = ({ message, type, onClose }) => {
 };
 
 const PurchasePage = () => {
+  const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([
@@ -48,12 +50,13 @@ const PurchasePage = () => {
 
   const showToast = (message, type = "success") => setToast({ message, type });
 
-  useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/products`)
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error(err));
-  }, []);
+ useEffect(() => {
+  axios
+    .get(`${import.meta.env.VITE_API_URL}/api/products`)
+    .then((res) => setProducts(res.data))
+    .catch((err) => console.error(err))
+    .finally(() => setProductsLoading(false)); // ✅ add this
+}, []);
 
   // const fetchPurchases = async () => {
   //   setHistoryLoading(true);
@@ -260,14 +263,20 @@ const fetchPurchases = async (retryCount = 0) => {
                           }
                           className="w-44 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                         >
-                          <option value="">-- Select --</option>
-                          {products.map((p) => (
-                            <option key={p._id} value={p._id}>
-                              {p.name}
-                            </option>
-                          ))}
-                          <option value="new">+ Add New Product</option>
-                        </select>
+                          
+  {productsLoading ? (
+    <option>Loading products...</option>
+  ) : (
+    <>
+      <option value="">-- Select Product --</option>
+      {products.map((p) => (
+        <option key={p._id} value={p._id}>
+          {p.name} (Stock: {p.stock})
+        </option>
+      ))}
+    </>
+  )}
+</select>
                       </td>
                       <td className="px-4 py-3">
                         {item.product === "new" ? (

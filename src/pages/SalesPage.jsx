@@ -33,6 +33,7 @@ const Toast = ({ message, type, onClose }) => {
 };
 
 const SalesPage = () => {
+  const [productsLoading, setProductsLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [customerName, setCustomerName] = useState("Walk-in");
   const [items, setItems] = useState([
@@ -56,12 +57,13 @@ const SalesPage = () => {
     setToast({ message, type });
   };
 
-  useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/products`)
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error("Failed to load products:", err));
-  }, []);
+ useEffect(() => {
+  axios
+    .get(`${import.meta.env.VITE_API_URL}/api/products`)
+    .then((res) => setProducts(res.data))
+    .catch((err) => console.error(err))
+    .finally(() => setProductsLoading(false)); // ✅ add this
+}, []);
 
   // const fetchSales = async () => {
   //   setHistoryLoading(true);
@@ -291,13 +293,20 @@ const SalesPage = () => {
                             }
                             className="w-48 px-2 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
-                            <option value="">-- Select Product --</option>
-                            {products.map((p) => (
-                              <option key={p._id} value={p._id}>
-                                {p.name} (Stock: {p.stock})
-                              </option>
-                            ))}
-                          </select>
+                           
+  {productsLoading ? (
+    <option>Loading products...</option>
+  ) : (
+    <>
+      <option value="">-- Select Product --</option>
+      {products.map((p) => (
+        <option key={p._id} value={p._id}>
+          {p.name} (Stock: {p.stock})
+        </option>
+      ))}
+    </>
+  )}
+</select>
                         </td>
                         <td className="px-4 py-3">
                           <input

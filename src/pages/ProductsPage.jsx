@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const ProductsPage = () => {
+  const [pageLoading, setPageLoading] = useState(true);
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -14,15 +15,19 @@ const ProductsPage = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  const fetchProducts = () => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/products`)
-      .then((res) => {
-        setProducts(res.data);
-        setFilteredProducts(res.data);
-      })
-      .catch((err) => console.error(err));
-  };
+
+  const fetchProducts = async () => {
+  setPageLoading(true);
+  try {
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/products`);
+    setProducts(res.data);
+    setFilteredProducts(res.data);
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setPageLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchProducts();
@@ -207,166 +212,144 @@ const ProductsPage = () => {
           </button>
         </div>
 
-        {/* Products Table - Desktop */}
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-4 md:p-6 border-b border-gray-100">
-            <h2 className="text-base font-bold text-gray-800">
-              📦 All Products
-            </h2>
-          </div>
+  {/* Products Table - Desktop */}
+<div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+  <div className="p-4 md:p-6 border-b border-gray-100">
+    <h2 className="text-base font-bold text-gray-800">📦 All Products</h2>
+  </div>
 
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 uppercase text-xs">
-                  <th className="px-6 py-3 text-left">#</th>
-                  <th className="px-6 py-3 text-left">Name</th>
-                  <th className="px-6 py-3 text-left">Unit</th>
-                  <th className="px-6 py-3 text-left">Price (Rs.)</th>
-                  <th className="px-6 py-3 text-left">Stock</th>
-                  <th className="px-6 py-3 text-left">Status</th>
-                  <th className="px-6 py-3 text-left">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((p, index) => (
-                  <tr
-                    key={p._id}
-                    className="border-t border-gray-100 hover:bg-gray-50 transition"
+  {/* ✅ Loading spinner */}
+  {pageLoading ? (
+    <div className="py-14 text-center">
+      <div className="w-10 h-10 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin mx-auto mb-3"></div>
+      <p className="text-gray-400 text-sm">Loading products...</p>
+    </div>
+  ) : (
+    <>
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-gray-50 text-gray-500 uppercase text-xs">
+              <th className="px-6 py-3 text-left">#</th>
+              <th className="px-6 py-3 text-left">Name</th>
+              <th className="px-6 py-3 text-left">Unit</th>
+              <th className="px-6 py-3 text-left">Price (Rs.)</th>
+              <th className="px-6 py-3 text-left">Stock</th>
+              <th className="px-6 py-3 text-left">Status</th>
+              <th className="px-6 py-3 text-left">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredProducts.map((p, index) => (
+              <tr key={p._id} className="border-t border-gray-100 hover:bg-gray-50 transition">
+                <td className="px-6 py-3 text-gray-400">{index + 1}</td>
+                <td className="px-6 py-3 font-medium text-gray-800">{p.name}</td>
+                <td className="px-6 py-3">
+                  <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
+                    {p.unitType}
+                  </span>
+                </td>
+                <td className="px-6 py-3">
+                  <input
+                    type="number"
+                    defaultValue={p.price}
+                    onBlur={(e) => updateProduct(p._id, "price", Number(e.target.value))}
+                    className="w-24 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </td>
+                <td className="px-6 py-3">
+                  <input
+                    type="number"
+                    defaultValue={p.stock}
+                    onBlur={(e) => updateProduct(p._id, "stock", Number(e.target.value))}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                  />
+                </td>
+                <td className="px-6 py-3">
+                  {p.stock <= 5 ? (
+                    <span className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">Low Stock</span>
+                  ) : (
+                    <span className="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-medium">In Stock</span>
+                  )}
+                </td>
+                <td className="px-6 py-3">
+                  <button
+                    onClick={() => handleDelete(p._id)}
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg text-sm font-medium transition"
                   >
-                    <td className="px-6 py-3 text-gray-400">{index + 1}</td>
-                    <td className="px-6 py-3 font-medium text-gray-800">
-                      {p.name}
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium">
-                        {p.unitType}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        defaultValue={p.price}
-                        onBlur={(e) =>
-                          updateProduct(p._id, "price", Number(e.target.value))
-                        }
-                        className="w-24 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      <input
-                        type="number"
-                        defaultValue={p.stock}
-                        onBlur={(e) =>
-                          updateProduct(p._id, "stock", Number(e.target.value))
-                        }
-                        className="w-20 px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                      />
-                    </td>
-                    <td className="px-6 py-3">
-                      {p.stock <= 5 ? (
-                        <span className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
-                          Low Stock
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-medium">
-                          In Stock
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-3">
-                      <button
-                        onClick={() => handleDelete(p._id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50 px-3 py-1 rounded-lg text-sm font-medium transition"
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {filteredProducts.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-10 text-center text-gray-400"
-                    >
-                      No products found
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden divide-y divide-gray-100">
-            {filteredProducts.map((p) => (
-              <div key={p._id} className="p-4">
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="font-semibold text-gray-800">{p.name}</p>
-                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium mt-1 inline-block">
-                      {p.unitType}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {p.stock <= 5 ? (
-                      <span className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">
-                        Low Stock
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-medium">
-                        In Stock
-                      </span>
-                    )}
-                    <button
-                      onClick={() => handleDelete(p._id)}
-                      className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Price (Rs.)
-                    </label>
-                    <input
-                      type="number"
-                      defaultValue={p.price}
-                      onBlur={(e) =>
-                        updateProduct(p._id, "price", Number(e.target.value))
-                      }
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      Stock
-                    </label>
-                    <input
-                      type="number"
-                      defaultValue={p.stock}
-                      onBlur={(e) =>
-                        updateProduct(p._id, "stock", Number(e.target.value))
-                      }
-                      className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
+                    Delete
+                  </button>
+                </td>
+              </tr>
             ))}
             {filteredProducts.length === 0 && (
-              <div className="p-8 text-center text-gray-400">
-                No products found
-              </div>
+              <tr>
+                <td colSpan={7} className="px-6 py-10 text-center text-gray-400">
+                  No products found
+                </td>
+              </tr>
             )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden divide-y divide-gray-100">
+        {filteredProducts.map((p) => (
+          <div key={p._id} className="p-4">
+            <div className="flex justify-between items-start mb-3">
+              <div>
+                <p className="font-semibold text-gray-800">{p.name}</p>
+                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-medium mt-1 inline-block">
+                  {p.unitType}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                {p.stock <= 5 ? (
+                  <span className="px-2 py-1 bg-red-50 text-red-500 rounded-lg text-xs font-medium">Low Stock</span>
+                ) : (
+                  <span className="px-2 py-1 bg-green-50 text-green-600 rounded-lg text-xs font-medium">In Stock</span>
+                )}
+                <button
+                  onClick={() => handleDelete(p._id)}
+                  className="text-red-500 hover:text-red-700 text-sm font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Price (Rs.)</label>
+                <input
+                  type="number"
+                  defaultValue={p.price}
+                  onBlur={(e) => updateProduct(p._id, "price", Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs text-gray-500 mb-1 block">Stock</label>
+                <input
+                  type="number"
+                  defaultValue={p.stock}
+                  onBlur={(e) => updateProduct(p._id, "stock", Number(e.target.value))}
+                  className="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                />
+              </div>
+            </div>
           </div>
+        ))}
+        {filteredProducts.length === 0 && (
+          <div className="p-8 text-center text-gray-400">No products found</div>
+        )}
+      </div>
+    </>
+  )}
+</div>
         </div>
       </div>
-    </div>
   );
 };
 
