@@ -3,71 +3,200 @@ import React, { forwardRef } from "react";
 const SaleReceipt = forwardRef(({ sale }, ref) => {
   if (!sale) return null;
 
+ 
+const subtotal = sale.totalAmount || 0;  // subtotal before discount
+const discount = sale.discount || 0;
+const total = sale.finalAmount || sale.totalAmount || 0; // ✅ use finalAmount
   return (
     <div
       ref={ref}
       style={{
-        padding: "20px",
-        fontFamily: "Arial",
-        width: "300px",
+        fontFamily: "'Arial', sans-serif",
+        width: "320px",
+        margin: "0 auto",
+        backgroundColor: "#fff",
+        padding: "24px 20px",
+        fontSize: "13px",
+        color: "#1a1a1a",
       }}
     >
-      {/* Header */}
-      <h2 style={{ textAlign: "center", marginBottom: "5px" }}>
-        Royal Electronics
-      </h2>
-      <p style={{ textAlign: "center", margin: "0" }}>Sales Receipt</p>
-
-      <hr />
-
-      {/* Info */}
-      <p>
-        <strong>Invoice:</strong> {sale?.invoiceNumber || "-"}
-      </p>
-      <p>
-        <strong>Customer:</strong> {sale?.customer || "-"}
-      </p>
-      <p>
-        <strong>Date:</strong>{" "}
-        {sale?.createdAt ? new Date(sale.createdAt).toLocaleString() : "-"}
-      </p>
-
-      <hr />
-
-      {/* Items */}
-      <div>
-        {sale?.items && sale.items.length > 0 ? (
-          sale.items.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                marginBottom: "8px",
-                borderBottom: "1px dashed #ccc",
-                paddingBottom: "5px",
-              }}
-            >
-              <div>{item.name}</div>
-              <div style={{ fontSize: "12px" }}>
-                {item.quantity} x {item.price} = {item.quantity * item.price}
-              </div>
-            </div>
-          ))
-        ) : (
-          <p>No items</p>
-        )}
+      {/* ===== HEADER ===== */}
+      <div style={{ textAlign: "center", marginBottom: "16px" }}>
+        <div style={{ fontSize: "22px", marginBottom: "4px" }}>👑</div>
+        <h2 style={{
+          margin: "0 0 4px 0",
+          fontSize: "18px",
+          fontWeight: "bold",
+          letterSpacing: "1px",
+          textTransform: "uppercase",
+        }}>
+          Royal Electronics
+        </h2>
+        <p style={{ margin: "0", fontSize: "11px", color: "#666" }}>
+          Sales Receipt
+        </p>
       </div>
 
-      <hr />
+      {/* ===== DIVIDER ===== */}
+      <div style={{
+        borderTop: "2px dashed #ccc",
+        margin: "12px 0",
+      }} />
 
-      {/* Total */}
-      <h3 style={{ textAlign: "right" }}>Total: {sale?.totalAmount || 0}</h3>
+      {/* ===== INVOICE INFO ===== */}
+      <div style={{ marginBottom: "12px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+          <tbody>
+            <tr>
+              <td style={{ padding: "2px 0", color: "#666" }}>Invoice</td>
+              <td style={{ padding: "2px 0", textAlign: "right", fontWeight: "bold" }}>
+                {sale?.invoiceNumber || "—"}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "2px 0", color: "#666" }}>Customer</td>
+              <td style={{ padding: "2px 0", textAlign: "right", fontWeight: "bold" }}>
+                {sale?.customer || "Walk-in"}
+              </td>
+            </tr>
+            <tr>
+              <td style={{ padding: "2px 0", color: "#666" }}>Date</td>
+              <td style={{ padding: "2px 0", textAlign: "right" }}>
+                {sale?.createdAt
+                  ? new Date(sale.createdAt).toLocaleString("en-PK", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "—"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-      <hr />
+      {/* ===== DIVIDER ===== */}
+      <div style={{ borderTop: "2px dashed #ccc", margin: "12px 0" }} />
 
-      {/* Footer */}
-      <p style={{ textAlign: "center", fontSize: "12px" }}>
-        Thank you for your purchase!
-      </p>
+      {/* ===== ITEMS HEADER ===== */}
+      <div style={{
+        display: "flex",
+        justifyContent: "space-between",
+        fontSize: "11px",
+        color: "#666",
+        fontWeight: "bold",
+        textTransform: "uppercase",
+        marginBottom: "8px",
+      }}>
+        <span style={{ flex: 2 }}>Item</span>
+        <span style={{ flex: 1, textAlign: "center" }}>Qty</span>
+        <span style={{ flex: 1, textAlign: "center" }}>Rate</span>
+        <span style={{ flex: 1, textAlign: "right" }}>Amt</span>
+      </div>
+
+      {/* ===== ITEMS ===== */}
+      {sale?.items && sale.items.length > 0 ? (
+        sale.items.map((item, index) => (
+          <div
+            key={index}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              padding: "6px 0",
+              borderBottom: "1px dashed #eee",
+              fontSize: "12px",
+            }}
+          >
+            <span style={{ flex: 2, fontWeight: "500" }}>
+              {item.name}
+              {item.unitType && (
+                <span style={{ fontSize: "10px", color: "#888", display: "block" }}>
+                  {item.unitType}
+                </span>
+              )}
+            </span>
+            <span style={{ flex: 1, textAlign: "center", color: "#444" }}>
+              {item.quantity}
+            </span>
+            <span style={{ flex: 1, textAlign: "center", color: "#444" }}>
+              {item.price?.toLocaleString()}
+            </span>
+            <span style={{ flex: 1, textAlign: "right", fontWeight: "600" }}>
+              {(item.quantity * item.price)?.toLocaleString()}
+            </span>
+          </div>
+        ))
+      ) : (
+        <p style={{ textAlign: "center", color: "#999" }}>No items</p>
+      )}
+
+      {/* ===== DIVIDER ===== */}
+      <div style={{ borderTop: "2px dashed #ccc", margin: "12px 0" }} />
+
+      {/* ===== TOTALS ===== */}
+      <table style={{ width: "100%", fontSize: "12px", borderCollapse: "collapse" }}>
+        <tbody>
+
+          {/* Subtotal */}
+          <tr>
+            <td style={{ padding: "3px 0", color: "#666" }}>Subtotal</td>
+            <td style={{ padding: "3px 0", textAlign: "right" }}>
+              Rs. {subtotal.toLocaleString()}
+            </td>
+          </tr>
+
+          {/* Discount — only show if applied */}
+          {discount > 0 && (
+            <tr>
+              <td style={{ padding: "3px 0", color: "#e67e22" }}>
+                Discount
+              </td>
+              <td style={{ padding: "3px 0", textAlign: "right", color: "#e67e22", fontWeight: "600" }}>
+                - Rs. {discount.toLocaleString()}
+              </td>
+            </tr>
+          )}
+
+          {/* Final Total */}
+          <tr>
+            <td style={{
+              padding: "8px 0 3px 0",
+              fontWeight: "bold",
+              fontSize: "14px",
+              borderTop: "1px solid #ddd",
+            }}>
+              Total
+            </td>
+            <td style={{
+              padding: "8px 0 3px 0",
+              textAlign: "right",
+              fontWeight: "bold",
+              fontSize: "16px",
+              borderTop: "1px solid #ddd",
+            }}>
+              Rs. {total.toLocaleString()}
+            </td>
+          </tr>
+
+        </tbody>
+      </table>
+
+      {/* ===== DIVIDER ===== */}
+      <div style={{ borderTop: "2px dashed #ccc", margin: "12px 0" }} />
+
+      {/* ===== FOOTER ===== */}
+      <div style={{ textAlign: "center" }}>
+        <p style={{ margin: "0 0 4px 0", fontSize: "12px", fontWeight: "600" }}>
+          Thank you for your purchase! 🙏
+        </p>
+        <p style={{ margin: "0", fontSize: "10px", color: "#999" }}>
+          Please visit again
+        </p>
+      </div>
+
     </div>
   );
 });
