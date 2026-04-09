@@ -78,25 +78,6 @@ useEffect(() => {
   fetchProducts();
 }, []);
 
-  // const fetchPurchases = async () => {
-  //   setHistoryLoading(true);
-  //   try {
-  //     const params = {};
-  //     if (supplier) params.supplier = supplier;
-  //     if (startDate) params.startDate = startDate;
-  //     if (endDate) params.endDate = endDate;
-
-  //     const res = await axios.get(
-  //       `${import.meta.env.VITE_API_URL}/api/purchases`,
-  //       { params },
-  //     );
-  //     setPurchases(res.data);
-  //   } catch (err) {
-  //     showToast("Failed to load purchase history", "error");
-  //   } finally {
-  //     setHistoryLoading(false);
-  //   }
-  // };
 const fetchPurchases = async (retryCount = 0) => {
   setHistoryLoading(true);
 
@@ -295,10 +276,12 @@ const fetchPurchases = async (retryCount = 0) => {
 ) : (
     <>
       <option value="">-- Select Product --</option>
+      <option value="new">+ Add New Product</option> {/* ✅ this was missing */}
       {products.map((p) => (
         <option key={p._id} value={p._id}>
           {p.name} (Stock: {p.stock})
         </option>
+
       ))}
     </>
   )}
@@ -395,12 +378,13 @@ const fetchPurchases = async (retryCount = 0) => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-sm bg-white"
                     >
                       <option value="">-- Select Product --</option>
+                            <option value="new">+ Add New Product</option> {/* ✅ this was missing */}
+
                       {products.map((p) => (
                         <option key={p._id} value={p._id}>
                           {p.name}
                         </option>
                       ))}
-                      <option value="new">+ Add New Product</option>
                     </select>
                   </div>
                   {item.product === "new" && (
